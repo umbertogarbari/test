@@ -1,0 +1,323 @@
+<?php
+
+
+/* la cartella include contiene i file per la biblioteca */
+
+function biblio_include_init() {
+		
+  // add js 
+  drupal_add_js(drupal_get_path('module', 'biblio_include').'/js/oddeven.js');
+  drupal_add_js(drupal_get_path('module', 'biblio_include').'/js/profilemenu.js');
+  drupal_add_js(drupal_get_path('module', 'biblio_include').'/js/dxrq.js');
+  
+  if (drupal_is_front_page() && user_is_anonymous()) {
+    drupal_add_js(drupal_get_path('module', 'biblio_include').'/js/gaformsubmittrack.js');
+  }
+  
+  drupal_add_js(drupal_get_path('module', 'biblio_include').'/js/changheday.js', array(
+    'scope' => 'footer',
+  ));
+  
+
+
+}
+
+
+/**
+ * Implements hook_block_info().
+ */
+function biblio_include_block_info() {
+  $blocks = array();
+  $blocks['orari_sedi'] = array(
+    'info' => t('AW - Blocco orari sedi custom HP Biblio'),
+  );
+  return $blocks;
+}
+
+function biblio_include_block_view($delta = '') {
+	if ($delta == 'orari_sedi'){
+	   $block['subject'] = t('ORARI DI APERTURA') ;
+       $block['content'] = crea_contenuto_blocco_orari_hp(); 
+	   return $block ;
+	}
+}
+
+
+function biblio_include_menu() {
+	$items['orarihp'] = array(
+	'title' => FALSE,
+    'page callback' => 'orari_page_function',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+	'delivery callback' => 'biblio_include_ajax_callback',
+  );
+  
+  
+  $items['search/ebsco'] = array(
+	'title' => FALSE,
+    'page callback' => 'search_ebsco',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+	'delivery callback' => 'biblio_include_search_callback',
+  );
+  
+  $items['search/periodici'] = array(
+	'title' => FALSE,
+    'page callback' => 'search_periodici',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+	'delivery callback' => 'biblio_include_search_callback',
+  );
+  
+  $items['search/banchedati'] = array(
+	'title' => FALSE,
+    'page callback' => 'search_banchedati',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+	'delivery callback' => 'biblio_include_search_callback',
+  );
+  
+  $items['search/ebooks'] = array(
+	'title' => FALSE,
+    'page callback' => 'search_ebooks',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+	'delivery callback' => 'biblio_include_search_callback',
+  );
+  
+  $items['search/cbt'] = array(
+	'title' => FALSE,
+    'page callback' => 'search_cbt',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+	'delivery callback' => 'biblio_include_search_callback',
+  );
+  
+  $items['search/iris'] = array(
+	'title' => FALSE,
+    'page callback' => 'search_iris',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+	'delivery callback' => 'biblio_include_search_callback',
+  );
+  
+  $items['search/tesi'] = array(
+	'title' => FALSE,
+    'page callback' => 'search_tesi',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+	'delivery callback' => 'biblio_include_search_callback',
+  );
+    
+  $items['search/eprints'] = array(
+	'title' => FALSE,
+    'page callback' => 'search_eprints',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+	'delivery callback' => 'biblio_include_search_callback',
+  );
+  
+  return $items;
+}
+
+ 
+function biblio_include_ajax_callback($page_callback_result) {
+  // Only render content and validates return
+  $content = is_string($page_callback_result) ? $page_callback_result : drupal_render($page_callback_result);
+  $html = $content;
+  print $html;
+}
+
+
+function biblio_include_search_callback($page_callback_result) {
+  // Only render content and validates return
+  $content = is_string($page_callback_result) ? $page_callback_result : drupal_render($page_callback_result);
+  $html = $content;
+  print $html;
+}
+
+
+ 
+
+function biblio_include_theme()
+{
+  return array
+  (
+    'orarihp_page' => array
+    (
+      'variables' => array('contents' => array()),
+      // Register the template orarihp-page.tpl.php
+      'template' => 'templates/orarihp-page', // don't add .tpl.php
+    ),
+  );
+}
+
+
+function orari_page_function(){
+	$result = crea_contenuto_blocco_orari_hp(); 
+	return $result ;
+}
+
+
+function crea_contenuto_blocco_orari_hp(){
+	
+	if (isset($_GET['lingua'])){
+		$lingua = $_GET['lingua'] ;
+	} else {
+      global $language ;
+      $lingua = $language->language ;
+	}  
+	
+	if (isset($_GET['data'])){
+       $from_date = $_GET['data'];
+       $to_date = $from_date;
+    } else {
+       $from_date = date("Y-m-d");
+       $to_date = date("Y-m-d");
+    }
+	$mydate = strtotime($from_date);
+    $giorno_sett = date("l", $mydate);
+	$giorno_mese = date("j", $mydate);
+	$mese = date("F", $mydate);
+	
+	$result = '<div id="hp_openings_hours"><h3 style="text-align:center;margin-top:5px;"><a class="prev-day" href="#" onclick="loadDoc(\'prev\')" style="float:left;">Prev</a> ' . t($giorno_sett) . ' ' . $giorno_mese . ' ' . t($mese) . ' <a class="next-day" href="#" onclick="loadDoc(\'next\')" style="float:right;">Next</a></h3>';
+
+    $type = 'sede' ;	
+ 
+    $result = $result . get_opening_hours_nodes($type, $from_date, $to_date, $lingua) . '</div>'	;
+	return $result ;
+	
+}
+
+
+
+
+
+
+function get_opening_hours_nodes($type, $from_date, $to_date, $lingua){
+
+    //$query = db_select('node', 'n');
+	$query = db_select('field_data_field_ordinamento_orari_hp', 't');
+    $query->join('node', 'n', 'n.nid = t.entity_id');
+	
+    $query->fields('n',array('type','title','nid', 'language'))//SELECT the fields from node
+
+	->condition('type',$type)
+	->condition('status', 0,'>')
+	->condition('n.language', array($lingua, 'und'),'IN')
+	//->condition('t.revision_id', 'n.vid','=')
+	->orderBy('t.field_ordinamento_orari_hp_value', 'ASC')//ORDER BY campo orientamento 
+    ->orderBy('title', 'ASC')//ORDER BY titolo
+    ->range(0,20);//LIMIT to	
+    
+	$output = '' ;
+    $result = $query->execute();
+    while($record = $result->fetchAssoc()) {
+		$path = drupal_get_path_alias('node/' . $record['nid']) ;
+		$title = $record['title'] ;
+		$lingua = $record['language'];
+		if ($lingua == 'en') {
+			$lingua = '/en/' ;
+		}else {
+			$lingua = '' ;
+		}
+		
+        
+		$output =  $output . '<div class="sede">' ;
+		$output = $output . '<span class="sede-title" style="margin-left:10px;"><a href="' . $lingua . $path . '" title="' . $title . '">' . $title . '</a></span>';
+		$output = $output . get_node_openings_hours($record['nid'], $from_date, $to_date);
+		$output = $output . '</div>' ;
+		
+		
+    }
+	
+	  ;
+	 return $output ;
+}	
+
+	
+function get_node_openings_hours($nid, $from_date, $to_date) {
+
+	$nids = array($nid);
+	$result = opening_hours_instance_load_multiple($nids, $from_date, $to_date);
+
+	if ($result &&  check_closed_day ($from_date)) {
+		$output = '<span class="sede-open-time" style="float:right;margin-right:10px;">' ;
+		foreach ( $result as $data ) {
+		$output = $output . $data->start_time . '-' . $data->end_time . ' ' ;
+		}
+		$output = $output . '</span>' ;
+		
+	   } else {
+		$output = '<span style="float:right;color:#ca3538;margin-right:2.5%;">' . t('closed') . '</span>';
+	  }
+	
+	return $output ;
+	
+}
+
+
+function check_closed_day ($from_date){
+ $blocked = variable_get('opening_hours_blocked_days');
+ //echo $from_date ;
+ if (in_array($from_date, $blocked)){
+	$return = FALSE;
+ } else {
+	$return = TRUE;
+ }
+ return $return ;
+}
+
+
+function search_ebsco () {
+    require_once  DRUPAL_ROOT . '/' .drupal_get_path('module', 'biblio_include') . "/include/ebsco.inc";
+	$results = search_ebsco_content ();
+	return $results;
+}
+
+function search_periodici () {
+    require_once  DRUPAL_ROOT . '/' .drupal_get_path('module', 'biblio_include') . "/include/periodici.inc";
+	$results = search_periodici_content ();
+	return $results;
+}
+
+function search_banchedati () {
+    require_once  DRUPAL_ROOT . '/' .drupal_get_path('module', 'biblio_include') . "/include/banchedati.inc";
+	$results = search_banchedati_content ();
+	return $results;
+}
+
+function search_ebooks () {
+    require_once  DRUPAL_ROOT . '/' .drupal_get_path('module', 'biblio_include') . "/include/ebooks.inc";
+	$results = search_ebooks_content ();
+	return $results;
+}
+
+function search_cbt () {
+    require_once  DRUPAL_ROOT . '/' .drupal_get_path('module', 'biblio_include') . "/include/cbt.inc";
+	$results = search_cbt_content ();
+	return $results;
+}
+
+function search_iris () {
+    require_once  DRUPAL_ROOT . '/' .drupal_get_path('module', 'biblio_include') . "/include/iris.inc";
+	$results = search_iris_content ();
+	return $results;
+}
+
+function search_tesi () {
+    require_once  DRUPAL_ROOT . '/' .drupal_get_path('module', 'biblio_include') . "/include/tesi.inc";
+	$results = search_tesi_content ();
+	return $results;
+}
+
+function search_eprints () {
+    require_once  DRUPAL_ROOT . '/' .drupal_get_path('module', 'biblio_include') . "/include/eprints.inc";
+	$results = search_eprints_content ();
+	return $results;
+}
+
+
+
+
+

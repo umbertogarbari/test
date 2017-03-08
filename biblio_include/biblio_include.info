@@ -1,0 +1,5 @@
+name = Biblio include
+description = Modulo per gli include della Biblio.
+package = Asia
+core = 7.x
+
