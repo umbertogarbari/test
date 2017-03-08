@@ -317,7 +317,7 @@ function search_eprints () {
 	return $results;
 }
 
-/* aggiungo dei nuovi commenti*/ 
+/* aggiungo dei nuovi commenti con qualche cosa di abbastanza furbo*/ 
 
 
 
